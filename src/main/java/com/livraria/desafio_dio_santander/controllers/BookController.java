@@ -41,5 +41,9 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(bookService.findById(id));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<BookModel> updateBookById(@PathVariable UUID id, @RequestBody BookRecordDto bookRecordDto) {
+        return ResponseEntity.ok(bookService.updateBook(id,bookRecordDto));
+    }
 
 }

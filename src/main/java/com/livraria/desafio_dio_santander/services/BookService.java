@@ -1,6 +1,7 @@
 package com.livraria.desafio_dio_santander.services;
 
 import com.livraria.desafio_dio_santander.dtos.BookRecordDto;
+import com.livraria.desafio_dio_santander.models.AuthorModel;
 import com.livraria.desafio_dio_santander.models.BookModel;
 import com.livraria.desafio_dio_santander.models.ReviewModel;
 import com.livraria.desafio_dio_santander.repositories.AuthorRepository;
@@ -9,11 +10,7 @@ import com.livraria.desafio_dio_santander.repositories.PublisherRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class BookService {
@@ -33,7 +30,7 @@ public class BookService {
         BookModel book = new BookModel();
         book.setTitle(bookRecordDto.title());
         book.setPublisher(publisherRepository.findById(bookRecordDto.publisherId()).get());
-        book.setAuthors(authorRepository.findAllById(bookRecordDto.authorIds()).stream().collect(Collectors.toSet()));
+        book.setAuthors(new HashSet<>(authorRepository.findAllById(bookRecordDto.authorIds())));
 
         ReviewModel reviewModel = new ReviewModel();
         reviewModel.setComment(bookRecordDto.reviewComment());
@@ -58,5 +55,35 @@ public class BookService {
 
     }
 
+    @Transactional
+    public BookModel updateBook(UUID id, BookRecordDto bookRecordDto) {
+        BookModel book = bookRepository.findById(id).orElseThrow(NoSuchElementException::new);
+
+        if (bookRecordDto.title() != null) {
+            book.setTitle(bookRecordDto.title());
+        }
+
+        if (bookRecordDto.publisherId() != null) {
+            book.setPublisher(publisherRepository
+                    .findById(bookRecordDto.publisherId())
+                    .orElseThrow(NoSuchElementException::new));
+        }
+
+        if (bookRecordDto.authorIds() != null && !bookRecordDto.authorIds().isEmpty()) {
+            book.setAuthors(new HashSet<>(authorRepository.findAllById(bookRecordDto.authorIds())));
+        }
+
+        if (bookRecordDto.reviewComment() != null) {
+            ReviewModel review = book.getReview();
+            if (review == null) {
+                review = new ReviewModel();
+                review.setBook(book);
+                book.setReview(review);
+            }
+            review.setComment(bookRecordDto.reviewComment());
+        }
+        return bookRepository.save(book);
+
+    }
 
 }
