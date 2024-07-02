@@ -1,1 +1,1 @@
-web: java -jar
+web: java -jar target/desafio-dio-santander-0.0.1-SNAPSHOT.jar
